@@ -62,12 +62,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
 .meal-info{flex:1}
 .meal-name{font-size:14px;font-weight:700}
 .meal-time{font-size:12px;opacity:.7;margin-top:2px}
-.meal-check{width:28px;height:28px;border-radius:50%;border:2.5px solid #DDD;
+.meal-check{width:40px;height:40px;border-radius:50%;border:3px solid #CCC;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  flex-shrink:0;transition:all .2s}
+  flex-shrink:0;transition:all .2s;background:#FAFAFA}
+.meal-check:active{transform:scale(.9)}
 .meal-check.done{background:var(--green);border-color:var(--green)}
-.meal-check svg{width:14px;height:14px;stroke:#fff;display:none}
+.meal-check svg{width:20px;height:20px;stroke:#fff;display:none}
 .meal-check.done svg{display:block}
+/* ── PROGRESS BAR (today) ── */
+.progress-card{margin:0 16px 12px;background:#fff;border-radius:14px;padding:14px 18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.progress-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-label{font-size:13px;font-weight:700;color:#444}
+.progress-count{font-size:14px;font-weight:800;color:var(--green)}
+.progress-track{background:#EEE;height:8px;border-radius:4px;overflow:hidden}
+.progress-fill{background:linear-gradient(90deg,var(--teal),var(--green));height:100%;
+  border-radius:4px;transition:width .4s;width:0%}
+/* ── CALENDAR DONE BADGE ── */
+.cal-done-badge{display:inline-flex;align-items:center;gap:4px;background:var(--green);
+  color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.cal-done-badge svg{width:12px;height:12px;stroke:#fff;stroke-width:3;fill:none}
+.cal-day-count{font-size:12px;color:#666;font-weight:600}
+.cal-day.completed .cal-day-num{color:var(--green)}
 .meal-body{padding:4px 16px 14px}
 .meal-menu{font-size:14px;color:#333;line-height:1.7;border-left:3px solid;padding-left:12px}
 .meal-macros{display:flex;gap:8px;margin-top:10px}
@@ -417,6 +433,13 @@ function renderToday() {
       </div>
       <div class="day-progress"><div class="day-progress-fill" style="width:${pct}%"></div></div>
     </div>
+    <div class="progress-card">
+      <div class="progress-head">
+        <span class="progress-label">✅ Tiến độ hôm nay</span>
+        <span class="progress-count" id="progress-count">0/4 bữa</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
     <div class="vinegar-bar">
       <span>🍋</span>
       <span><strong>Nhớ uống giấm gạo / chanh trước mỗi bữa 20 phút!</strong><br>1 muỗng giấm gạo hoặc ½ quả chanh + 200ml nước</span>
@@ -460,12 +483,27 @@ function renderToday() {
     </div>`;
 
   el.innerHTML = html;
+  updateProgress(planDay);
+}
+
+function countDone(day) {
+  return ['sang','trua','toi','phu'].filter(k => getChecked(day, k)).length;
+}
+
+function updateProgress(day) {
+  const n = countDone(day);
+  const pct = Math.round(n/4*100);
+  const cnt = document.getElementById('progress-count');
+  const fill = document.getElementById('progress-fill');
+  if(cnt) cnt.textContent = `${n}/4 bữa`;
+  if(fill) fill.style.width = pct + '%';
 }
 
 function checkMeal(day, meal, el) {
   toggleChecked(day, meal);
   const done = getChecked(day, meal);
   el.classList.toggle('done', done);
+  updateProgress(day);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -487,12 +525,24 @@ function renderCal() {
       const dayDate = new Date(STATE.startDate);
       dayDate.setDate(dayDate.getDate() + d - 1);
       const dateStr = `${dayDate.getDate().toString().padStart(2,'0')}/${(dayDate.getMonth()+1).toString().padStart(2,'0')}`;
-      const status = isToday ? '← Hôm nay' : '';
+      const doneCount = countDone(d);
+      const completed = doneCount === 4;
+      const cls2 = (cls + (completed ? ' completed' : '')).trim();
+      let statusHtml;
+      if(completed) {
+        statusHtml = `<span class="cal-done-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Xong</span>`;
+      } else if(isToday) {
+        statusHtml = `<span class="cal-day-status">← Hôm nay · ${doneCount}/4</span>`;
+      } else if(doneCount > 0) {
+        statusHtml = `<span class="cal-day-count">${doneCount}/4 bữa</span>`;
+      } else {
+        statusHtml = `<span class="cal-day-status"></span>`;
+      }
       html += `
-      <div class="cal-day ${cls}" id="cal-d${d}">
+      <div class="cal-day ${cls2}" id="cal-d${d}">
         <div class="cal-day-head" onclick="toggleCalDay(${d})">
           <span class="cal-day-num">Ngày ${d} &nbsp;<small style="font-weight:400;color:#999">${dateStr}</small></span>
-          <span class="cal-day-status">${status}</span>
+          ${statusHtml}
         </div>
         <div class="cal-day-meals">
           ${['sang','trua','toi','phu'].map(k => {
