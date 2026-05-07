@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0D7377">
+<title>Thực Đơn 14 Ngày — Glucose Revolution</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--teal:#0D7377;--teal2:#14BDAC;--teal-l:#E0F5F5;--blue:#1565C0;--blue-l:#DDEEFF;
+  --green:#2E7D32;--green-l:#E8F5E9;--orange:#E65100;--orange-l:#FFF3E0;
+  --gray-l:#F5F5F5;--navy:#1A3C6B;--red:#C62828;--text:#1A1A1A}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  background:#F0F4F4;color:var(--text);min-height:100vh;overflow-x:hidden}
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;padding-bottom:80px}
+.screen.active{display:block}
+/* ── SETUP SCREEN ── */
+#screen-setup{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;background:linear-gradient(160deg,#0D7377 0%,#14BDAC 100%)}
+.setup-card{background:#fff;border-radius:24px;padding:32px 24px;width:100%;max-width:420px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.setup-logo{text-align:center;margin-bottom:24px}
+.setup-logo h1{font-size:22px;color:var(--teal);font-weight:800;line-height:1.3}
+.setup-logo p{font-size:13px;color:#666;margin-top:6px}
+.setup-field{margin-bottom:20px}
+.setup-field label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:8px}
+.setup-field input{width:100%;padding:14px 16px;border:2px solid #E0E0E0;border-radius:12px;
+  font-size:16px;outline:none;transition:border-color .2s}
+.setup-field input:focus{border-color:var(--teal)}
+.btn-start{width:100%;padding:16px;background:var(--teal);color:#fff;border:none;
+  border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-start:active{opacity:.85}
+.setup-note{font-size:12px;color:#888;text-align:center;margin-top:16px;line-height:1.6}
+/* ── TOP BAR ── */
+.topbar{background:var(--teal);color:#fff;padding:16px 20px 12px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:17px;font-weight:700}
+.topbar-sub{font-size:12px;opacity:.8;margin-top:2px}
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;
+  border-top:1px solid #E0E0E0;display:flex;z-index:100;
+  box-shadow:0 -4px 20px rgba(0,0,0,.08)}
+.nav-btn{flex:1;padding:12px 0 10px;background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:#999;transition:color .2s}
+.nav-btn.active{color:var(--teal)}
+.nav-btn svg{width:22px;height:22px}
+.nav-btn span{font-size:10px;font-weight:600}
+/* ── TODAY SCREEN ── */
+.day-banner{margin:16px;border-radius:16px;overflow:hidden}
+.day-banner-head{background:var(--teal);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.day-banner-head h2{font-size:20px;font-weight:800}
+.day-badge{background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600}
+.day-progress{background:rgba(255,255,255,.15);height:6px}
+.day-progress-fill{background:#fff;height:100%;border-radius:0 3px 3px 0;transition:width .5s}
+/* ── MEAL CARD ── */
+.meal-card{margin:0 16px 12px;background:#fff;border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.meal-head{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.meal-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:20px;flex-shrink:0}
+.meal-info{flex:1}
+.meal-name{font-size:14px;font-weight:700}
+.meal-time{font-size:12px;opacity:.7;margin-top:2px}
+.meal-check{width:28px;height:28px;border-radius:50%;border:2.5px solid #DDD;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  flex-shrink:0;transition:all .2s}
+.meal-check.done{background:var(--green);border-color:var(--green)}
+.meal-check svg{width:14px;height:14px;stroke:#fff;display:none}
+.meal-check.done svg{display:block}
+.meal-body{padding:4px 16px 14px}
+.meal-menu{font-size:14px;color:#333;line-height:1.7;border-left:3px solid;padding-left:12px}
+.meal-macros{display:flex;gap:8px;margin-top:10px}
+.macro-pill{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.m-pro{background:#E8F5E9;color:#1B5E20}
+.m-carb{background:#FFF3E0;color:#7B3F00}
+/* Colors per meal */
+.sang .meal-icon{background:var(--blue-l)}
+.sang .meal-name{color:var(--blue)}
+.sang .meal-menu{border-color:var(--blue)}
+.trua .meal-icon{background:var(--green-l)}
+.trua .meal-name{color:var(--green)}
+.trua .meal-menu{border-color:var(--green)}
+.toi .meal-icon{background:var(--orange-l)}
+.toi .meal-name{color:var(--orange)}
+.toi .meal-menu{border-color:var(--orange)}
+.phu .meal-icon{background:var(--gray-l)}
+.phu .meal-name{color:#555}
+.phu .meal-menu{border-color:#CCC}
+/* ── VINEGAR REMINDER ── */
+.vinegar-bar{margin:0 16px 12px;background:#E8F5E9;border-radius:14px;
+  padding:12px 16px;display:flex;align-items:center;gap:10px}
+.vinegar-bar span{font-size:13px;color:#1B5E20;line-height:1.5}
+/* ── TOTAL BAR ── */
+.total-bar{margin:0 16px 16px;background:var(--navy);border-radius:14px;padding:14px 18px}
+.total-bar h4{color:#fff;font-size:13px;margin-bottom:8px;opacity:.8}
+.total-row{display:flex;gap:8px;flex-wrap:wrap}
+.total-pill{background:rgba(255,255,255,.15);color:#fff;padding:4px 12px;
+  border-radius:20px;font-size:12px;font-weight:600}
+/* ── DONE MESSAGE ── */
+.done-msg{margin:16px;background:linear-gradient(135deg,var(--teal),#14BDAC);
+  border-radius:16px;padding:20px;text-align:center;color:#fff}
+.done-msg h2{font-size:20px;font-weight:800;margin-bottom:8px}
+.done-msg p{font-size:14px;opacity:.9;line-height:1.6}
+/* ── CALENDAR SCREEN ── */
+.cal-week{margin:16px 16px 8px;font-size:12px;font-weight:700;color:#888;letter-spacing:.5px;text-transform:uppercase}
+.cal-day{margin:0 16px 8px;background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer}
+.cal-day-head{padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.cal-day-num{font-size:15px;font-weight:800;color:var(--teal)}
+.cal-day-status{font-size:12px;color:#888}
+.cal-day.today .cal-day-head{background:var(--teal-l)}
+.cal-day.today .cal-day-num{color:var(--teal)}
+.cal-day.past .cal-day-num{color:#999}
+.cal-day-meals{display:none;padding:0 16px 12px;border-top:1px solid #F0F0F0}
+.cal-day.open .cal-day-meals{display:block}
+.cal-meal-row{padding:6px 0;font-size:13px;color:#333;border-bottom:1px solid #F5F5F5;display:flex;gap:8px}
+.cal-meal-row:last-child{border:none}
+.cal-meal-label{font-weight:700;min-width:50px;flex-shrink:0}
+/* ── RULES SCREEN ── */
+.rule-card{margin:0 16px 10px;border-radius:16px;overflow:hidden}
+.rule-head{padding:14px 18px;display:flex;gap:12px;align-items:center}
+.rule-num{width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:18px;flex-shrink:0}
+.rule-title{color:#fff;font-size:15px;font-weight:700}
+.rule-desc{background:#fff;padding:12px 18px;font-size:13px;color:#444;line-height:1.7}
+.schedule-card{margin:0 16px 10px;background:#fff;border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.schedule-head{background:var(--navy);padding:14px 18px;color:#fff;font-size:15px;font-weight:700}
+.schedule-row{display:flex;padding:10px 18px;border-bottom:1px solid #F0F0F0;align-items:center;gap:14px}
+.schedule-row:last-child{border:none}
+.schedule-row:nth-child(odd){background:#FAFAFA}
+.sch-time{font-size:13px;font-weight:700;color:var(--teal);min-width:48px;flex-shrink:0}
+.sch-act{font-size:13px;color:#333}
+.warn-card{margin:0 16px 20px;background:var(--red);border-radius:16px;padding:16px 18px}
+.warn-card h4{color:#fff;font-size:14px;font-weight:700;margin-bottom:8px}
+.warn-card p{color:#FFDDDD;font-size:13px;line-height:1.7}
+.section-title{padding:16px 16px 8px;font-size:12px;font-weight:700;color:#888;
+  letter-spacing:.5px;text-transform:uppercase}
+/* ── RESET BTN ── */
+.reset-wrap{text-align:center;padding:8px 0 20px}
+.btn-reset{background:none;border:1px solid #CCC;border-radius:20px;padding:8px 20px;
+  font-size:12px;color:#999;cursor:pointer}
+/* ── NOT STARTED / FINISHED ── */
+.info-box{margin:32px 20px;background:#fff;border-radius:20px;padding:24px;text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.info-box h3{font-size:18px;font-weight:800;color:var(--teal);margin-bottom:10px}
+.info-box p{font-size:14px;color:#666;line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP SCREEN ══ -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <h1>🥗 Thực Đơn 14 Ngày<br>Glucose Revolution</h1>
+      <p>Kiểm soát đường huyết · Giảm mỡ máu · Giảm cân<br>Thực phẩm Việt Nam</p>
+    </div>
+    <div class="setup-field">
+      <label>Tên của bạn</label>
+      <input type="text" id="inp-name" placeholder="VD: Nam" value="">
+    </div>
+    <div class="setup-field">
+      <label>Ngày bắt đầu chương trình</label>
+      <input type="date" id="inp-date">
+    </div>
+    <button class="btn-start" onclick="doSetup()">Bắt đầu chương trình →</button>
+    <p class="setup-note">Tiến trình được lưu trên điện thoại của bạn.<br>Chọn ngày đúng để app tự tính hôm nay là Ngày mấy.</p>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app" style="display:none">
+
+<!-- TODAY SCREEN -->
+<div id="screen-today" class="screen active">
+  <div class="topbar">
+    <div class="topbar-title" id="today-title">Hôm nay</div>
+    <div class="topbar-sub" id="today-sub"></div>
+  </div>
+  <div id="today-content"></div>
+</div>
+
+<!-- CALENDAR SCREEN -->
+<div id="screen-cal" class="screen">
+  <div class="topbar">
+    <div class="topbar-title">Lịch 14 Ngày</div>
+    <div class="topbar-sub" id="cal-sub"></div>
+  </div>
+  <div id="cal-content"></div>
+</div>
+
+<!-- RULES SCREEN -->
+<div id="screen-rules" class="screen">
+  <div class="topbar">
+    <div class="topbar-title">Nguyên Tắc & Lịch Trình</div>
+    <div class="topbar-sub">5 quy tắc vàng Glucose Revolution</div>
+  </div>
+  <div style="height:12px"></div>
+  <div id="rules-content"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showScreen('today')" id="nav-today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span>Hôm nay</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('cal')" id="nav-cal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <span>Lịch</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('rules')" id="nav-rules">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>Quy tắc</span>
+  </button>
+</nav>
+
+</div><!-- end #app -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════════
+const MEALS = {
+  1:  { sang:{m:'3 trứng chiên dầu olive + cải xanh xào tỏi 150g + 30g hạt óc chó',p:'~20g',c:'~2g'},
+        trua:{m:'Rau muống luộc 250g → cá thu kho gừng 200g → 1 chén cơm gạo lứt',p:'~46g',c:'~70g'},
+        toi: {m:'Canh bắp cải + thịt heo nạc 200g + đậu hũ 100g hấp nước tương',p:'~47g',c:'~8g'},
+        phu: {m:'2 trứng luộc + 30g hạt điều',p:'~14g',c:'~5g'}, tp:'~127g',tc:'~85g' },
+  2:  { sang:{m:'Cháo yến mạch mặn (50g yến mạch + 2 trứng + tôm 80g + hành tiêu)',p:'~34g',c:'~30g'},
+        trua:{m:'Cải thìa luộc 200g → gà ta bỏ da luộc 200g → 1 chén cơm gạo lứt',p:'~46g',c:'~70g'},
+        toi: {m:'Canh rau dền + tôm 180g sốt cà chua + đậu hũ 100g',p:'~40g',c:'~10g'},
+        phu: {m:'2 trứng luộc',p:'~12g',c:'0g'}, tp:'~132g',tc:'~110g' },
+  3:  { sang:{m:'3 trứng bác cà chua + cải xanh luộc 150g + 30g hạt điều',p:'~20g',c:'~5g'},
+        trua:{m:'Súp lơ luộc 200g → thịt bò nạc xào nấm 200g → 1 chén cơm gạo lứt',p:'~48g',c:'~70g'},
+        toi: {m:'Canh khổ qua nhồi thịt heo nạc 200g + rau muống luộc',p:'~42g',c:'~8g'},
+        phu: {m:'2 trứng luộc + 30g hạt điều',p:'~14g',c:'~5g'}, tp:'~124g',tc:'~88g' },
+  4:  { sang:{m:'Đậu hũ cứng 200g chiên ít dầu + 2 trứng + rau muống xào tỏi',p:'~30g',c:'~5g'},
+        trua:{m:'Cải xanh luộc 250g → gà kho gừng nghệ 200g → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Canh chua cá lóc 220g (ít me) + giá + rau muống',p:'~42g',c:'~12g'},
+        phu: {m:'2 trứng luộc + 30g hạt óc chó',p:'~14g',c:'~2g'}, tp:'~130g',tc:'~89g' },
+  5:  { sang:{m:'3 trứng luộc + dưa chuột + 30g hạt điều',p:'~20g',c:'~5g'},
+        trua:{m:'Rau muống luộc 250g → tôm luộc 220g → 1 chén cơm gạo lứt',p:'~46g',c:'~70g'},
+        toi: {m:'Canh khổ qua hầm xương + thịt nạc 200g + cải xanh xào',p:'~43g',c:'~8g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~3g'}, tp:'~123g',tc:'~86g' },
+  6:  { sang:{m:'Cá thu áp chảo 160g + cải bó xôi xào tỏi + 2 trứng',p:'~44g',c:'~2g'},
+        trua:{m:'Salad xà lách+cà chua+dưa leo 200g → thịt heo nạc luộc 200g → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Canh rau ngót + đậu hũ nhồi thịt 250g hấp',p:'~34g',c:'~8g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~3g'}, tp:'~136g',tc:'~83g' },
+  7:  { sang:{m:'3 trứng cuộn rau (cà chua + ớt chuông + hành) + 30g hạt',p:'~20g',c:'~5g'},
+        trua:{m:'Rau cải luộc 250g → gà ta xé phay 200g → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Canh bí xanh + cá thu sốt cà chua tươi 200g + giá trần',p:'~40g',c:'~10g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~2g'}, tp:'~118g',tc:'~87g' },
+  8:  { sang:{m:'3 trứng bác + cải xanh xào + 30g hạt óc chó',p:'~20g',c:'~3g'},
+        trua:{m:'Rau muống luộc 250g → cá lóc kho tiêu 200g → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Canh bắp cải + tôm 200g xào + đậu hũ 100g sốt cà chua',p:'~44g',c:'~10g'},
+        phu: {m:'2 trứng luộc + 30g hạt điều',p:'~14g',c:'~5g'}, tp:'~122g',tc:'~88g' },
+  9:  { sang:{m:'Đậu hũ lụa hấp 200g + 3 trứng chiên + rau muống xào tỏi',p:'~34g',c:'~5g'},
+        trua:{m:'Cải thìa luộc 200g → thịt bò nạc xào hành tây nấm 200g → 1 chén cơm gạo lứt',p:'~48g',c:'~70g'},
+        toi: {m:'Canh khổ qua + gà hấp gừng hành 200g',p:'~40g',c:'~5g'},
+        phu: {m:'2 trứng luộc',p:'~12g',c:'0g'}, tp:'~134g',tc:'~80g' },
+  10: { sang:{m:'3 trứng chiên + cà chua + cải xanh luộc 150g',p:'~18g',c:'~5g'},
+        trua:{m:'Salad rau xanh 200g → cá thu kho nghệ 220g → 1 chén cơm gạo lứt',p:'~50g',c:'~70g'},
+        toi: {m:'Canh rau dền + tôm 180g xào sả + đậu hũ 100g',p:'~40g',c:'~8g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~3g'}, tp:'~122g',tc:'~86g' },
+  11: { sang:{m:'Cháo yến mạch mặn 50g + tôm 100g + 2 trứng + hành tiêu',p:'~36g',c:'~30g'},
+        trua:{m:'Rau muống xào 200g → gà xé phay 200g + đậu phộng 20g → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Canh cải xanh + cá basa hấp chanh sả 200g',p:'~38g',c:'~5g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~3g'}, tp:'~132g',tc:'~108g' },
+  12: { sang:{m:'3 trứng luộc + phô mai ít béo 30g + xà lách + dưa chuột',p:'~22g',c:'~2g'},
+        trua:{m:'Rau cải luộc 200g → thịt heo nạc kho thấm 200g → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Tôm sốt me ít đường 200g + bắp cải luộc + canh rau dền',p:'~40g',c:'~12g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~3g'}, tp:'~120g',tc:'~87g' },
+  13: { sang:{m:'Cá thu áp chảo 160g + rau xào tỏi + 2 trứng',p:'~44g',c:'~2g'},
+        trua:{m:'Salad xà lách+cà chua 200g → đậu hũ nhồi thịt hấp 280g → 1 chén cơm gạo lứt',p:'~40g',c:'~70g'},
+        toi: {m:'Canh khổ qua hầm xương + thịt nạc 200g + rau xanh luộc',p:'~42g',c:'~5g'},
+        phu: {m:'2 trứng luộc + 30g hạt',p:'~14g',c:'~3g'}, tp:'~140g',tc:'~80g' },
+  14: { sang:{m:'3 trứng bác + nấm xào + cải bó xôi 150g',p:'~18g',c:'~5g'},
+        trua:{m:'Rau muống luộc 250g → gà ta luộc 200g + nước chấm gừng → 1 chén cơm gạo lứt',p:'~44g',c:'~70g'},
+        toi: {m:'Canh rau ngót + cá lóc sốt cà chua tươi 200g',p:'~38g',c:'~10g'},
+        phu: {m:'2 trứng luộc + 30g hạt óc chó',p:'~14g',c:'~2g'}, tp:'~114g',tc:'~87g' },
+};
+
+const MEAL_META = {
+  sang:{label:'Bữa Sáng',time:'07:00',icon:'🍳',cls:'sang'},
+  trua:{label:'Bữa Trưa',time:'12:00',icon:'🍚',cls:'trua'},
+  toi: {label:'Bữa Tối', time:'18:00',icon:'🥗',cls:'toi'},
+  phu: {label:'Bữa Phụ', time:'15:30',icon:'🥚',cls:'phu'},
+};
+
+const RULES = [
+  {n:'1',title:'Rau trước tiên',desc:'Ăn rau 5 phút đầu → rồi protein → cuối cùng mới tinh bột. Làm chậm hấp thu đường máu.',color:'#2E7D32',bg:'#2E7D32'},
+  {n:'2',title:'Giấm/Chanh trước bữa ăn',desc:'1 muỗng giấm gạo HOẶC nước cốt ½ quả chanh + 200ml nước. Uống 20 phút trước mỗi bữa.',color:'#0D7377',bg:'#0D7377'},
+  {n:'3',title:'Bữa sáng mặn — protein cao',desc:'Trứng + Cá/Gà + Rau. Không bánh mì, không nước trái cây, không cơm sáng.',color:'#1565C0',bg:'#1565C0'},
+  {n:'4',title:'Đi bộ sau ăn',desc:'10–15 phút đi bộ sau mỗi bữa chính. Cơ bắp hấp thu đường, hạ đường huyết tự nhiên.',color:'#E65100',bg:'#E65100'},
+  {n:'5',title:'Không carbs trần',desc:'Cơm gạo lứt luôn ăn CUỐI, sau rau và protein. Không ăn cơm một mình, không bánh ngọt.',color:'#7B1FA2',bg:'#7B1FA2'},
+];
+
+const SCHEDULE = [
+  ['06:30','Thức dậy — uống giấm gạo / chanh pha 200ml nước (cho bữa sáng)'],
+  ['07:00','Bữa Sáng: Trứng + Cá/Gà + Rau (không cơm hoặc yến mạch mặn)'],
+  ['07:15','Đi bộ 10 phút'],
+  ['11:30','Uống giấm gạo / chanh (trước bữa trưa 30 phút)'],
+  ['12:00','Bữa Trưa: Rau trước → Protein → Cơm gạo lứt'],
+  ['12:20','Đi bộ 10–15 phút'],
+  ['15:30','Bữa Phụ (nếu đói): 2 trứng + hạt'],
+  ['17:30','Uống giấm gạo / chanh (trước bữa tối 30 phút)'],
+  ['18:00','Bữa Tối: Rau trước → Protein (không cơm hoặc rất ít)'],
+  ['18:20','Đi bộ 10 phút'],
+];
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+let STATE = { name:'', startDate:null, checked:{} };
+
+function save() { localStorage.setItem('glu_state', JSON.stringify(STATE)); }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem('glu_state')||'{}'); if(s.startDate) STATE = s; }
+  catch(e) {}
+}
+function getChecked(day, meal) { return !!(STATE.checked[`d${day}_${meal}`]); }
+function toggleChecked(day, meal) {
+  const k = `d${day}_${meal}`;
+  STATE.checked[k] = !STATE.checked[k];
+  save();
+}
+
+// Today's plan day (1-14, or 0=not started, -1=finished)
+function getPlanDay() {
+  if(!STATE.startDate) return 0;
+  const start = new Date(STATE.startDate); start.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000);
+  if(diff < 0) return 0;       // not started yet
+  if(diff >= 14) return -1;    // finished
+  return diff + 1;             // 1-14
+}
+
+function fmtDate(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════════════════════════════
+function doSetup() {
+  const name = document.getElementById('inp-name').value.trim() || 'Bạn';
+  const date = document.getElementById('inp-date').value;
+  if(!date) { alert('Vui lòng chọn ngày bắt đầu!'); return; }
+  STATE.name = name; STATE.startDate = date; STATE.checked = {};
+  save();
+  initApp();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id === 'today') renderToday();
+  if(id === 'cal')   renderCal();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER TODAY
+// ══════════════════════════════════════════════════════════════════
+function renderToday() {
+  const planDay = getPlanDay();
+  const el = document.getElementById('today-content');
+  const title = document.getElementById('today-title');
+  const sub = document.getElementById('today-sub');
+
+  const todayStr = new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'numeric',year:'numeric'});
+  sub.textContent = todayStr;
+
+  if(planDay === 0) {
+    const startDate = new Date(STATE.startDate);
+    title.textContent = `Chào ${STATE.name}!`;
+    el.innerHTML = `<div class="info-box">
+      <h3>Chương trình chưa bắt đầu</h3>
+      <p>Chương trình sẽ bắt đầu vào ngày<br><strong>${fmtDate(STATE.startDate)}</strong><br><br>Hãy chuẩn bị thực phẩm và nhớ uống giấm gạo / chanh trước bữa đầu tiên! 💪</p>
+    </div>`;
+    return;
+  }
+
+  if(planDay === -1) {
+    title.textContent = `Hoàn thành! 🎉`;
+    el.innerHTML = `<div class="done-msg" style="margin:16px">
+      <h2>Chúc mừng ${STATE.name}!</h2>
+      <p>Bạn đã hoàn thành 14 ngày Glucose Revolution.<br>Hãy kiểm tra cân nặng và mỡ máu để thấy kết quả nhé! Tiếp tục duy trì các nguyên tắc này mỗi ngày.</p>
+    </div>
+    <div class="info-box"><p>Bấm vào <strong>Lịch</strong> để xem lại toàn bộ thực đơn.</p></div>`;
+    return;
+  }
+
+  title.textContent = `Ngày ${planDay} / 14`;
+  const d = MEALS[planDay];
+  const pct = Math.round((planDay-1)/14*100);
+
+  let html = `
+    <div class="day-banner">
+      <div class="day-banner-head">
+        <h2>${STATE.name} — Ngày ${planDay}</h2>
+        <span class="day-badge">${planDay <= 7 ? 'Tuần 1' : 'Tuần 2'}</span>
+      </div>
+      <div class="day-progress"><div class="day-progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="vinegar-bar">
+      <span>🍋</span>
+      <span><strong>Nhớ uống giấm gạo / chanh trước mỗi bữa 20 phút!</strong><br>1 muỗng giấm gạo hoặc ½ quả chanh + 200ml nước</span>
+    </div>`;
+
+  ['sang','trua','toi','phu'].forEach(k => {
+    const meta = MEAL_META[k];
+    const meal = d[k];
+    const done = getChecked(planDay, k);
+    html += `
+    <div class="meal-card">
+      <div class="meal-head ${meta.cls}">
+        <div class="meal-icon">${meta.icon}</div>
+        <div class="meal-info">
+          <div class="meal-name">${meta.label}</div>
+          <div class="meal-time">${meta.time}</div>
+        </div>
+        <div class="meal-check ${done?'done':''}" onclick="checkMeal(${planDay},'${k}',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+      <div class="meal-body">
+        <div class="meal-menu ${meta.cls}">${meal.m}</div>
+        <div class="meal-macros">
+          <span class="macro-pill m-pro">Protein: ${meal.p}</span>
+          <span class="macro-pill m-carb">Tinh bột: ${meal.c}</span>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `
+    <div class="total-bar">
+      <h4>Tổng ngày ${planDay}</h4>
+      <div class="total-row">
+        <span class="total-pill">🥩 Protein: ${d.tp}</span>
+        <span class="total-pill">🍚 Tinh bột: ${d.tc}</span>
+        <span class="total-pill">🥦 Rau: 500–600g</span>
+        <span class="total-pill">🔥 ~2.100 kcal</span>
+      </div>
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+function checkMeal(day, meal, el) {
+  toggleChecked(day, meal);
+  const done = getChecked(day, meal);
+  el.classList.toggle('done', done);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER CALENDAR
+// ══════════════════════════════════════════════════════════════════
+function renderCal() {
+  const planDay = getPlanDay();
+  const el = document.getElementById('cal-content');
+  const sub = document.getElementById('cal-sub');
+  sub.textContent = `Bắt đầu: ${fmtDate(STATE.startDate)}`;
+
+  let html = '';
+  for(let w = 1; w <= 2; w++) {
+    html += `<div class="cal-week">Tuần ${w}</div>`;
+    for(let d = (w-1)*7+1; d <= w*7; d++) {
+      const isToday = d === planDay;
+      const isPast = d < planDay || planDay === -1;
+      const cls = isToday ? 'today' : (isPast ? 'past' : '');
+      const dayDate = new Date(STATE.startDate);
+      dayDate.setDate(dayDate.getDate() + d - 1);
+      const dateStr = `${dayDate.getDate().toString().padStart(2,'0')}/${(dayDate.getMonth()+1).toString().padStart(2,'0')}`;
+      const status = isToday ? '← Hôm nay' : '';
+      html += `
+      <div class="cal-day ${cls}" id="cal-d${d}">
+        <div class="cal-day-head" onclick="toggleCalDay(${d})">
+          <span class="cal-day-num">Ngày ${d} &nbsp;<small style="font-weight:400;color:#999">${dateStr}</small></span>
+          <span class="cal-day-status">${status}</span>
+        </div>
+        <div class="cal-day-meals">
+          ${['sang','trua','toi','phu'].map(k => {
+            const meta = MEAL_META[k];
+            return `<div class="cal-meal-row"><span class="cal-meal-label">${meta.icon} ${meta.label.replace('Bữa ','')}</span><span>${MEALS[d][k].m}</span></div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+  }
+  html += `<div class="reset-wrap"><button class="btn-reset" onclick="resetApp()">Đặt lại từ đầu</button></div>`;
+  el.innerHTML = html;
+
+  // Auto open today
+  if(planDay >= 1 && planDay <= 14) {
+    const td = document.getElementById(`cal-d${planDay}`);
+    if(td) { td.classList.add('open'); td.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }
+}
+
+function toggleCalDay(d) {
+  const el = document.getElementById(`cal-d${d}`);
+  el.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER RULES
+// ══════════════════════════════════════════════════════════════════
+function renderRules() {
+  const el = document.getElementById('rules-content');
+  let html = '';
+
+  RULES.forEach(r => {
+    html += `
+    <div class="rule-card">
+      <div class="rule-head" style="background:${r.bg}">
+        <div class="rule-num">${r.n}</div>
+        <div class="rule-title">${r.title}</div>
+      </div>
+      <div class="rule-desc">${r.desc}</div>
+    </div>`;
+  });
+
+  html += `
+  <div style="height:12px"></div>
+  <div class="schedule-card">
+    <div class="schedule-head">📅 Lịch Trình Mỗi Ngày</div>
+    ${SCHEDULE.map((r,i) => `<div class="schedule-row"><span class="sch-time">${r[0]}</span><span class="sch-act">${r[1]}</span></div>`).join('')}
+  </div>
+  <div style="height:12px"></div>
+  <div class="warn-card">
+    <h4>⚠️ Lưu ý y tế</h4>
+    <p>Thực đơn mang tính tham khảo. Người tiểu đường và mỡ máu cao cần tham khảo bác sĩ trước khi thay đổi chế độ ăn. Không tự ý ngừng thuốc.<br><br>
+    • Theo dõi đường huyết trước và 2 giờ sau ăn<br>
+    • Cân nặng: kiểm tra 1 lần/tuần<br>
+    • Mỡ máu: kiểm tra lại sau 6–8 tuần</p>
+  </div>
+  <div style="height:8px"></div>`;
+
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+function resetApp() {
+  if(!confirm('Xóa toàn bộ tiến trình và bắt đầu lại?')) return;
+  localStorage.removeItem('glu_state');
+  location.reload();
+}
+
+function initApp() {
+  document.getElementById('screen-setup').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderToday();
+  renderRules();
+}
+
+// Boot
+load();
+if(STATE.startDate) {
+  initApp();
+} else {
+  // Pre-fill date to tomorrow
+  const d = new Date(); d.setDate(d.getDate()+1);
+  document.getElementById('inp-date').value = d.toISOString().split('T')[0];
+}
+</script>
+</body>
+</html>
